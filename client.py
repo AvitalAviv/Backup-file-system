@@ -10,6 +10,9 @@ PORT = 0
 client = None
 
 
+"""
+copy client's dir to server
+"""
 def create_new_dir_and_copy(user_path, socket, Client):
     size = str(len(Client.path))
     socket.send(bytes(size.zfill(100), encoding='utf8'))
@@ -44,6 +47,9 @@ def start_copying_c_to_s(user_path, socket, Client):
     create_new_dir_and_copy(user_path, socket, Client)
 
 
+"""
+the server sends to the client files
+"""
 def files_from_server(socket_s, client_path):
     seperator1 = "AVITAL"
     seperator2 = "NOA"
@@ -67,6 +73,9 @@ def files_from_server(socket_s, client_path):
         file.close()
 
 
+"""
+the server sends to the client the dir that it saved from previous connections
+"""
 def dir_from_server(path, socket_s, id_client):
     seperator1 = "AVITAL"
     seperator2 = "NOA"
@@ -94,7 +103,9 @@ def dir_from_server(path, socket_s, id_client):
             os.makedirs(path)
         continue
 
-
+"""
+defining client class - fields 
+"""
 class Client:
     def __init__(self, server_ip, server_port, path, timer, id_client, computer_name, sign):
         self.id_client = id_client
@@ -269,16 +280,22 @@ def call_WD():
         my_observer.join()
 
 
+# if the client has user id - existing client
 if len(sys.argv) == 6:
     client = Client(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], -1, 0)
     IP = sys.argv[1]
     PORT = int(sys.argv[2])
+
+# new client
 else:
     client = Client(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], -1, 0, 0)
     IP = sys.argv[1]
     PORT = int(sys.argv[2])
+    
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((client.server_ip, client.server_port))
+
+# getting from the server a random user id
 if client.id_client == -1:
     size_of_computer = str(len(client.computer_name))
     s.send(bytes(size_of_computer.zfill(10), encoding='utf8'))
@@ -288,19 +305,21 @@ if client.id_client == -1:
     s.send(bytes(status.zfill(10), encoding='utf8'))
     data = s.recv(128)
     client.id_client = data.decode('utf8')
-    start_copying_c_to_s(client.path, s, client)
-    s.close()
-    call_WD()
+    start_copying_c_to_s(client.path, s, client)  # copy dir from client to server
+    s.close()  # closing the socket
+    call_WD()  # start to monitior changes in the dir
+
+# if no need to get user id - existing client
 else:  # 2
     size_of_computer = str(len(client.computer_name))
     s.send(bytes(size_of_computer.zfill(10), encoding='utf8'))
     s.send(bytes(client.computer_name, encoding='utf8'))
     status = str(2)
     s.send(bytes(status.zfill(10), encoding='utf8'))
-    s.send(bytes(client.id_client, encoding='utf8'))
+    s.send(bytes(client.id_client, encoding='utf8')) # send to server the existing id
     is_computer_in_dict = s.recv(1)
     if str(is_computer_in_dict.decode()) == "0":
-        dir_from_server(client.path, s, client.id_client)
-        s.close()
-        call_WD()
+        dir_from_server(client.path, s, client.id_client) # get the dir from server
+        s.close() # closing the socket
+        call_WD() # start to monitior changes in the dir
 
