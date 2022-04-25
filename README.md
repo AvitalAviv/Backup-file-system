@@ -19,4 +19,5 @@ Backup file system in Linux written in Python using **Watchdog** library.
 
 * *server.py* - server running with args - server's port.
 
-  Server accept client by client and listen to changes. When change happend on client's directory, it gets all the data about the change from the client. The server need to update not only the 
+  Server accept client by client and listen to changes. When change happend on client's directory, it gets all the data about the change from the client. Every change in every computer of the client is being notified to the server that updates it in a directory where the server code appears.
+ 
